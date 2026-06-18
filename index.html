@@ -55,7 +55,7 @@
   .empty-sub { font-size:13px; color:var(--muted); line-height:1.8; }
   .btn-empty-upload { margin-top:20px; display:inline-flex; align-items:center; gap:8px; background:var(--pink); color:#fff; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .btn-empty-upload:hover { background:var(--pink-dark); }
-  .loading-wrap { text-align:center; padding:4rem 2rem; color:var(--muted); font-size:14px; display:none; }
+  .loading-wrap { text-align:center; padding:4rem 2rem; display:none; }
   .loading-wrap.show { display:block; }
   .spinner { width:36px; height:36px; border:3px solid var(--pink-mid); border-top-color:var(--pink); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px; }
   @keyframes spin { to{transform:rotate(360deg)} }
@@ -128,14 +128,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  설정값
-// ══════════════════════════════════════════════
 var CLOUD   = 'djmvsyi3g';
 var PRESET  = 'baby_gallery';
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzSKmayUu3zBrkJ-8NiFkjBqdkPvKJjGyAG_g0BzcjfHoLbK4CUFp846M7VQRnFaf80/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycby2h5oFWj3by-JAJbJ8S8slKET71MD_Baci_BRkXT1srfDITNCXfn35oo_L94gLoaic/exec';
 
-// ── Toast ──────────────────────────────────────
 function showToast(msg, dur) {
   var t = document.getElementById('toast');
   t.textContent = msg;
@@ -143,14 +139,12 @@ function showToast(msg, dur) {
   setTimeout(function(){ t.classList.remove('show'); }, dur||2500);
 }
 
-// ── UI ─────────────────────────────────────────
 function updateUI() {
   var n = document.querySelectorAll('.photo-card').length;
   document.getElementById('stat-pill').textContent = n + '장';
   document.getElementById('empty-state').classList.toggle('show', n === 0);
 }
 
-// ── Modal ──────────────────────────────────────
 function openModal() {
   document.getElementById('modal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -165,23 +159,23 @@ function handleBackdropClick(e) {
   if (e.target === document.getElementById('modal-backdrop')) closeModal();
 }
 
-// ── 사진 목록 불러오기 (Google Sheets) ────────
+// GET 방식으로 목록 불러오기
 async function loadPhotos() {
   document.getElementById('loading-wrap').classList.add('show');
   document.getElementById('gallery').innerHTML = '';
   try {
-    var res  = await fetch(GAS_URL + '?_=' + Date.now());
+    var res  = await fetch(GAS_URL + '?action=list&_=' + Date.now());
     var list = await res.json();
-    list.forEach(function(item) { renderCard(item, false); });
+    if (Array.isArray(list)) {
+      list.forEach(function(item) { renderCard(item, false); });
+    }
   } catch(e) {
     console.error('로드 실패:', e);
-    showToast('사진 목록을 불러오지 못했습니다');
   }
   document.getElementById('loading-wrap').classList.remove('show');
   updateUI();
 }
 
-// ── 카드 렌더 ──────────────────────────────────
 function renderCard(item, prepend) {
   var grid = document.getElementById('gallery');
   var card = document.createElement('div');
@@ -222,7 +216,7 @@ function renderCard(item, prepend) {
   }
 }
 
-// ── 업로드 ─────────────────────────────────────
+// GET 방식으로 업로드
 async function handleFiles(fileList) {
   var files = Array.from(fileList).filter(function(f){ return f.type.startsWith('image/'); });
   if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
@@ -239,7 +233,7 @@ async function handleFiles(fileList) {
     fill.style.width = ((i+1)/files.length*100) + '%';
 
     try {
-      // 1. Cloudinary에 이미지 업로드
+      // 1. Cloudinary 업로드
       var fd = new FormData();
       fd.append('file', file);
       fd.append('upload_preset', PRESET);
@@ -249,24 +243,21 @@ async function handleFiles(fileList) {
       var cData = await cRes.json();
       if (cData.error) throw new Error(cData.error.message);
 
-      var item = {
-        url: cData.secure_url,
-        name: file.name,
-        uploadedAt: new Date().toISOString()
-      };
+      var uploadedAt = new Date().toISOString();
+      var name = encodeURIComponent(file.name);
+      var url  = encodeURIComponent(cData.secure_url);
 
-      // 2. Google Sheets에 URL 저장
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action:'add', url:item.url, name:item.name, uploadedAt:item.uploadedAt })
-      });
+      // 2. GET 방식으로 Sheets에 저장 (CORS 우회)
+      var gasRes = await fetch(GAS_URL + '?action=add&url=' + url + '&name=' + name + '&uploadedAt=' + uploadedAt);
+      var gasData = await gasRes.json();
 
+      var item = { url: cData.secure_url, name: file.name, uploadedAt: uploadedAt };
       renderCard(item, true);
       done++;
       updateUI();
     } catch(e) {
       console.error('업로드 실패:', e);
-      showToast('업로드 실패: ' + file.name);
+      showToast('업로드 실패: ' + file.name + ' (' + (e.message||'') + ')');
     }
   }
 
@@ -274,15 +265,13 @@ async function handleFiles(fileList) {
   if (done > 0) showToast(done + '장 업로드 완료 🎉', 3000);
 }
 
-// ── 삭제 ───────────────────────────────────────
+// GET 방식으로 삭제
 async function deletePhoto(item, card) {
   if (!confirm('이 사진을 삭제할까요?')) return;
   try {
     card.style.opacity = '0.4';
-    await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action:'delete', url:item.url })
-    });
+    var url = encodeURIComponent(item.url);
+    await fetch(GAS_URL + '?action=delete&url=' + url);
     card.remove();
     updateUI();
     showToast('사진이 삭제되었습니다');
@@ -292,7 +281,6 @@ async function deletePhoto(item, card) {
   }
 }
 
-// ── Lightbox ────────────────────────────────────
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('open');
@@ -306,7 +294,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key==='Escape') { closeLightbox(); closeModal(); }
 });
 
-// ── Drag & drop ─────────────────────────────────
 var zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag'); });
 zone.addEventListener('dragleave', function(){ zone.classList.remove('drag'); });
@@ -316,7 +303,6 @@ document.getElementById('file-input').addEventListener('change', function(e){
   e.target.value = '';
 });
 
-// ── 시작 ───────────────────────────────────────
 loadPhotos();
 </script>
 </body>
