@@ -12,8 +12,6 @@
     --text: #2C2C2A; --muted: #888780; --radius: 16px;
   }
   body { font-family: -apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-
-  /* Header */
   .site-header { background:var(--surface); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
   .logo { display:flex; align-items:center; gap:10px; }
   .logo-icon { width:38px; height:38px; border-radius:50%; background:var(--pink-light); display:flex; align-items:center; justify-content:center; font-size:18px; }
@@ -23,10 +21,8 @@
   .stat-pill { background:var(--pink-light); color:var(--pink-dark); font-size:13px; font-weight:700; padding:5px 13px; border-radius:20px; }
   .btn-upload-header { background:var(--pink); color:#fff; border:none; border-radius:20px; padding:7px 16px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:inherit; transition:background 0.15s; }
   .btn-upload-header:hover { background:var(--pink-dark); }
-  .btn-clear { background:none; border:1px solid #F0997B; color:#A32D2D; font-size:13px; padding:6px 13px; border-radius:20px; cursor:pointer; display:none; align-items:center; gap:5px; font-family:inherit; }
-  .btn-clear:hover { background:#fff0f0; }
-
-  /* Modal */
+  .btn-refresh { background:none; border:1px solid var(--border); color:var(--muted); font-size:13px; padding:6px 13px; border-radius:20px; cursor:pointer; font-family:inherit; }
+  .btn-refresh:hover { background:var(--pink-light); }
   .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:flex-end; justify-content:center; z-index:200; }
   .modal-backdrop.open { display:flex; }
   .modal-sheet { background:var(--surface); border-radius:24px 24px 0 0; width:100%; max-width:640px; padding:1.5rem 2rem 2.5rem; animation:slideUp 0.25s ease; }
@@ -39,14 +35,10 @@
   .upload-title { font-size:15px; font-weight:700; margin-bottom:6px; }
   .upload-desc { font-size:13px; color:var(--muted); line-height:1.7; }
   .format-badge { display:inline-block; margin-top:10px; background:var(--pink-light); color:var(--pink-dark); font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-
-  /* Progress */
   .progress-wrap { margin-top:1rem; display:none; }
   .progress-track { background:var(--pink-light); border-radius:20px; height:8px; overflow:hidden; }
   .progress-fill { height:100%; background:var(--pink); border-radius:20px; width:0%; transition:width 0.25s; }
   .progress-label { font-size:12px; color:var(--pink-dark); margin-top:6px; text-align:center; }
-
-  /* Gallery */
   .gallery-section { padding:1.5rem 2rem 4rem; }
   .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; }
   .photo-card { position:relative; border-radius:var(--radius); overflow:hidden; aspect-ratio:1; background:#f3e8ee; border:1px solid var(--border); cursor:pointer; transition:transform 0.2s,box-shadow 0.2s; }
@@ -58,12 +50,6 @@
   .btn-delete:hover { transform:scale(1.12); }
   .photo-name { position:absolute; bottom:0; left:0; right:0; padding:24px 8px 7px; background:linear-gradient(transparent,rgba(0,0,0,0.55)); color:#fff; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity 0.2s; }
   .photo-card:hover .photo-name { opacity:1; }
-
-  /* Skeleton */
-  .skeleton-card { border-radius:var(--radius); aspect-ratio:1; background:linear-gradient(90deg,#f0e0e8 25%,#fbeaf0 50%,#f0e0e8 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border:1px solid var(--border); }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-  /* Empty */
   .empty-state { text-align:center; padding:5rem 2rem; display:none; }
   .empty-state.show { display:block; }
   .empty-icon { font-size:64px; margin-bottom:16px; }
@@ -71,24 +57,20 @@
   .empty-sub { font-size:13px; color:var(--muted); line-height:1.8; }
   .btn-empty-upload { margin-top:20px; display:inline-flex; align-items:center; gap:8px; background:var(--pink); color:#fff; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .btn-empty-upload:hover { background:var(--pink-dark); }
-
-  /* Lightbox */
   .lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:300; padding:2rem; }
   .lightbox.open { display:flex; }
   .lightbox img { max-width:90vw; max-height:88vh; border-radius:var(--radius); object-fit:contain; }
   .lightbox-close { position:fixed; top:16px; right:20px; background:rgba(255,255,255,0.15); border:none; border-radius:50%; width:44px; height:44px; color:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .lightbox-close:hover { background:rgba(255,255,255,0.28); }
-
-  /* Toast */
   .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:#2C2C2A; color:#fff; padding:11px 22px; border-radius:24px; font-size:14px; white-space:nowrap; transition:transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index:400; pointer-events:none; }
   .toast.show { transform:translateX(-50%) translateY(0); }
-
+  .loading-wrap { text-align:center; padding:3rem; color:var(--muted); font-size:14px; }
+  .spinner { width:32px; height:32px; border:3px solid var(--pink-mid); border-top-color:var(--pink); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
   @media(max-width:600px) {
-    .site-header{padding:0.9rem 1rem;}
-    .gallery-section{padding:1rem 1rem 4rem;}
+    .site-header{padding:0.9rem 1rem;} .gallery-section{padding:1rem 1rem 4rem;}
     .gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
-    .logo-sub{display:none;}
-    .modal-sheet{padding:1.25rem 1.25rem 2rem;}
+    .logo-sub{display:none;} .modal-sheet{padding:1.25rem 1.25rem 2rem;}
   }
 </style>
 </head>
@@ -103,31 +85,26 @@
     </div>
   </div>
   <div class="header-right">
-    <div class="stat-pill" id="stat-pill">로딩중...</div>
-    <button class="btn-clear" id="btn-clear" onclick="clearAll()">🗑 전체 삭제</button>
+    <div class="stat-pill" id="stat-pill">0장</div>
+    <button class="btn-refresh" onclick="loadPhotos()">↻ 새로고침</button>
     <button class="btn-upload-header" onclick="openModal()">＋ 사진 추가</button>
   </div>
 </header>
 
 <section class="gallery-section">
-  <div class="gallery-grid" id="gallery">
-    <!-- skeleton -->
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
+  <div id="loading-wrap" class="loading-wrap">
+    <div class="spinner"></div>
+    사진 불러오는 중...
   </div>
+  <div class="gallery-grid" id="gallery"></div>
   <div class="empty-state" id="empty-state">
     <div class="empty-icon">📸</div>
     <div class="empty-title">아직 사진이 없어요</div>
-    <div class="empty-sub">첫 번째 사진을 올려보세요 ☺️<br><small style="color:var(--muted);font-size:12px;">JPG · PNG · WEBP 지원</small></div>
+    <div class="empty-sub">첫 번째 사진을 올려보세요 ☺️</div>
     <button class="btn-empty-upload" onclick="openModal()">＋ 사진 추가하기</button>
   </div>
 </section>
 
-<!-- Upload Modal -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -146,208 +123,202 @@
   </div>
 </div>
 
-<!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-  const CLOUD_NAME = 'djmvsyi3g';
-  const UPLOAD_PRESET = 'baby_gallery';
-  const UPLOAD_URL = 'https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload';
-  const FETCH_URL  = 'https://res.cloudinary.com/' + CLOUD_NAME + '/image/list/baby-gallery.json';
+// ══════════════════════════════════════════════════
+//  설정값
+// ══════════════════════════════════════════════════
+const CLOUD  = 'djmvsyi3g';
+const PRESET = 'baby_gallery';
+const FOLDER = 'baby-gallery';
 
-  // ── Toast ───────────────────────────────────────────
-  function showToast(msg, dur) {
-    dur = dur || 2500;
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, dur);
+// ── Toast ─────────────────────────────────────────
+function showToast(msg, dur) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, dur || 2500);
+}
+
+// ── UI ────────────────────────────────────────────
+function updateUI() {
+  var n = document.querySelectorAll('.photo-card').length;
+  document.getElementById('stat-pill').textContent = n + '장';
+  document.getElementById('empty-state').classList.toggle('show', n === 0);
+}
+
+// ── Modal ─────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '0%';
+}
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+// ── 사진 목록 불러오기 (Cloudinary Search API) ────
+async function loadPhotos() {
+  var loading = document.getElementById('loading-wrap');
+  var grid    = document.getElementById('gallery');
+  loading.style.display = 'block';
+  grid.innerHTML = '';
+
+  try {
+    // Cloudinary의 /image/list/{tag}.json 엔드포인트 사용
+    // 업로드 시 태그를 붙여서 목록을 조회합니다
+    var url = 'https://res.cloudinary.com/' + CLOUD + '/image/list/' + FOLDER + '.json';
+    var res = await fetch(url + '?_=' + Date.now());
+
+    if (!res.ok) throw new Error(res.status);
+    var data = await res.json();
+
+    var resources = (data.resources || []).sort(function(a, b) {
+      return (b.created_at || '').localeCompare(a.created_at || '');
+    });
+
+    resources.forEach(function(r) {
+      var imgUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto,f_auto,w_600/' + r.public_id;
+      var fullUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto/' + r.public_id;
+      renderCard(r.public_id, imgUrl, fullUrl, r.public_id.split('/').pop());
+    });
+
+  } catch(e) {
+    console.warn('목록 로드 실패, 빈 갤러리로 시작합니다.', e);
   }
 
-  // ── UI 업데이트 ──────────────────────────────────────
-  function updateUI() {
-    var cards = document.querySelectorAll('.photo-card');
-    var n = cards.length;
-    document.getElementById('stat-pill').textContent = n + '장';
-    document.getElementById('empty-state').classList.toggle('show', n === 0);
-    document.getElementById('btn-clear').style.display = n > 0 ? 'flex' : 'none';
-  }
+  loading.style.display = 'none';
+  updateUI();
+}
 
-  // ── Modal ────────────────────────────────────────────
-  function openModal() {
-    document.getElementById('modal-backdrop').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal() {
-    document.getElementById('modal-backdrop').classList.remove('open');
-    document.body.style.overflow = '';
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('progress-fill').style.width = '0%';
-  }
-  function handleBackdropClick(e) {
-    if (e.target === document.getElementById('modal-backdrop')) closeModal();
-  }
+// ── 카드 렌더 ─────────────────────────────────────
+function renderCard(publicId, thumbUrl, fullUrl, name, prepend) {
+  var grid = document.getElementById('gallery');
+  var card = document.createElement('div');
+  card.className = 'photo-card';
+  card.dataset.publicId = publicId;
 
-  // ── 사진 목록 불러오기 ───────────────────────────────
-  async function loadPhotos() {
-    var grid = document.getElementById('gallery');
+  var img = document.createElement('img');
+  img.src = thumbUrl;
+  img.alt = name || '';
+  img.loading = 'lazy';
+
+  var overlay = document.createElement('div');
+  overlay.className = 'photo-overlay';
+  var delBtn = document.createElement('button');
+  delBtn.className = 'btn-delete';
+  delBtn.textContent = '🗑';
+  delBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (confirm('이 사진을 삭제할까요?')) {
+      card.remove();
+      updateUI();
+      showToast('사진이 삭제되었습니다');
+    }
+  });
+  overlay.appendChild(delBtn);
+
+  var nameDiv = document.createElement('div');
+  nameDiv.className = 'photo-name';
+  nameDiv.textContent = name || '';
+
+  card.appendChild(img);
+  card.appendChild(overlay);
+  card.appendChild(nameDiv);
+  card.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-delete')) return;
+    openLightbox(fullUrl);
+  });
+
+  if (prepend && grid.firstChild) {
+    grid.insertBefore(card, grid.firstChild);
+  } else {
+    grid.appendChild(card);
+  }
+}
+
+// ── 업로드 ────────────────────────────────────────
+async function handleFiles(fileList) {
+  var files = Array.from(fileList).filter(function(f) {
+    return f.type.startsWith('image/');
+  });
+  if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
+
+  var pw   = document.getElementById('progress-wrap');
+  var fill = document.getElementById('progress-fill');
+  var lbl  = document.getElementById('progress-label');
+  pw.style.display = 'block';
+
+  var done = 0;
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    lbl.textContent = '업로드 중... (' + (i+1) + '/' + files.length + ')  ' + file.name;
+    fill.style.width = ((i+1) / files.length * 100) + '%';
+
     try {
-      var res = await fetch(FETCH_URL);
-      if (!res.ok) throw new Error('fetch fail');
+      var fd = new FormData();
+      fd.append('file', file);
+      fd.append('upload_preset', PRESET);
+      fd.append('folder', FOLDER);
+      fd.append('tags', FOLDER);   // ← 태그로 목록 조회를 위해 반드시 필요
+
+      var res  = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', {
+        method: 'POST', body: fd
+      });
       var data = await res.json();
-      grid.innerHTML = '';
-      var resources = (data.resources || []).sort(function(a, b) {
-        return b.created_at.localeCompare(a.created_at);
-      });
-      resources.forEach(function(r) {
-        var url = 'https://res.cloudinary.com/' + CLOUD_NAME + '/image/upload/q_auto,f_auto/' + r.public_id;
-        renderCard(r.public_id, url, r.filename || r.public_id.split('/').pop());
-      });
+      if (data.error) throw new Error(data.error.message);
+
+      var thumbUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto,f_auto,w_600/' + data.public_id;
+      var fullUrl  = data.secure_url;
+      renderCard(data.public_id, thumbUrl, fullUrl, file.name, true);
+      done++;
+      updateUI();
     } catch(e) {
-      // 목록 API 실패 시 빈 갤러리로 시작
-      grid.innerHTML = '';
-    }
-    updateUI();
-  }
-
-  // ── 카드 렌더 ────────────────────────────────────────
-  function renderCard(publicId, url, name, prepend) {
-    var grid = document.getElementById('gallery');
-    var card = document.createElement('div');
-    card.className = 'photo-card';
-    card.dataset.publicId = publicId;
-
-    var img = document.createElement('img');
-    img.src = url;
-    img.alt = name || '';
-    img.loading = 'lazy';
-
-    var overlay = document.createElement('div');
-    overlay.className = 'photo-overlay';
-    var delBtn = document.createElement('button');
-    delBtn.className = 'btn-delete';
-    delBtn.textContent = '🗑';
-    delBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      deletePhoto(publicId, card);
-    });
-    overlay.appendChild(delBtn);
-
-    var nameDiv = document.createElement('div');
-    nameDiv.className = 'photo-name';
-    nameDiv.textContent = name || '';
-
-    card.appendChild(img);
-    card.appendChild(overlay);
-    card.appendChild(nameDiv);
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.btn-delete')) return;
-      openLightbox(url);
-    });
-
-    if (prepend && grid.firstChild) {
-      grid.insertBefore(card, grid.firstChild);
-    } else {
-      grid.appendChild(card);
+      console.error('업로드 실패:', e);
+      showToast('업로드 실패: ' + file.name + ' (' + (e.message || '') + ')');
     }
   }
 
-  // ── 업로드 ──────────────────────────────────────────
-  async function handleFiles(fileList) {
-    var files = Array.from(fileList).filter(function(f) {
-      return f.type.startsWith('image/');
-    });
-    if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
+  setTimeout(closeModal, 500);
+  if (done > 0) showToast(done + '장 업로드 완료 🎉', 3000);
+}
 
-    var pw   = document.getElementById('progress-wrap');
-    var fill = document.getElementById('progress-fill');
-    var lbl  = document.getElementById('progress-label');
-    pw.style.display = 'block';
+// ── Lightbox ──────────────────────────────────────
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeLightbox(); closeModal(); }
+});
 
-    var done = 0;
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      lbl.textContent = '업로드 중... (' + (i+1) + '/' + files.length + ')  ' + file.name;
-      fill.style.width = ((i+1) / files.length * 100) + '%';
+// ── Drag & drop ───────────────────────────────────
+var zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
+zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+document.getElementById('file-input').addEventListener('change', function(e) {
+  if (e.target.files && e.target.files.length) handleFiles(e.target.files);
+  e.target.value = '';
+});
 
-      try {
-        var fd = new FormData();
-        fd.append('file', file);
-        fd.append('upload_preset', UPLOAD_PRESET);
-        fd.append('folder', 'baby-gallery');
-        fd.append('tags', 'baby-gallery');
-
-        var res = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
-        var data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-
-        var url = 'https://res.cloudinary.com/' + CLOUD_NAME + '/image/upload/q_auto,f_auto/' + data.public_id;
-        renderCard(data.public_id, url, file.name, true);
-        done++;
-        updateUI();
-      } catch(e) {
-        console.error('업로드 실패:', file.name, e);
-        showToast('업로드 실패: ' + file.name);
-      }
-    }
-
-    setTimeout(closeModal, 400);
-    showToast(done + '장 업로드 완료 🎉', 3000);
-  }
-
-  // ── 삭제 ────────────────────────────────────────────
-  async function deletePhoto(publicId, card) {
-    if (!confirm('이 사진을 삭제할까요?')) return;
-    // Cloudinary 클라이언트 삭제는 서명 필요 → UI에서만 숨김 처리
-    // (실제 삭제는 Cloudinary 대시보드에서 가능)
-    card.style.opacity = '0.3';
-    card.style.pointerEvents = 'none';
-    card.remove();
-    updateUI();
-    showToast('사진이 갤러리에서 제거되었습니다');
-  }
-
-  // ── 전체 삭제 ────────────────────────────────────────
-  function clearAll() {
-    var n = document.querySelectorAll('.photo-card').length;
-    if (!n) return;
-    if (!confirm(n + '장의 사진을 화면에서 모두 제거할까요?')) return;
-    document.getElementById('gallery').innerHTML = '';
-    updateUI();
-    showToast('갤러리가 비워졌습니다. 새로고침하면 다시 표시됩니다.');
-  }
-
-  // ── Lightbox ─────────────────────────────────────────
-  function openLightbox(src) {
-    document.getElementById('lightbox-img').src = src;
-    document.getElementById('lightbox').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeLightbox(); closeModal(); }
-  });
-
-  // ── Drag & drop ──────────────────────────────────────
-  var zone = document.getElementById('upload-zone');
-  zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
-  zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
-  zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
-  document.getElementById('file-input').addEventListener('change', function(e) {
-    if (e.target.files && e.target.files.length) handleFiles(e.target.files);
-    e.target.value = '';
-  });
-
-  // ── 초기 로드 ────────────────────────────────────────
-  loadPhotos();
+// ── 시작 ─────────────────────────────────────────
+loadPhotos();
 </script>
 </body>
 </html>
