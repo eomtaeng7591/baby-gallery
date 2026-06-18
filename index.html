@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍼 아기 사진 갤러리</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --pink-light: #FBEAF0; --pink-mid: #F4C0D1; --pink: #D4537E; --pink-dark: #993556;
+    --bg: #fff9fb; --surface: #ffffff; --border: rgba(212,83,126,0.15);
+    --text: #2C2C2A; --muted: #888780; --radius: 16px;
+  }
+  body { font-family: -apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon { width:38px; height:38px; border-radius:50%; background:var(--pink-light); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .logo-text { font-size:17px; font-weight:700; }
+  .logo-sub { font-size:11px; color:var(--muted); }
+  .header-right { display:flex; align-items:center; gap:8px; }
+  .stat-pill { background:var(--pink-light); color:var(--pink-dark); font-size:13px; font-weight:700; padding:5px 13px; border-radius:20px; }
+
+  /* 업로드 버튼 (헤더) */
+  .btn-upload-header {
+    background: var(--pink); color:#fff;
+    border:none; border-radius:20px;
+    padding: 7px 16px; font-size:13px; font-weight:600;
+    cursor:pointer; display:flex; align-items:center; gap:6px;
+    font-family:inherit; transition: background 0.15s;
+  }
+  .btn-upload-header:hover { background: var(--pink-dark); }
+
+  .btn-clear {
+    background:none; border:1px solid #F0997B; color:#A32D2D;
+    font-size:13px; padding:6px 13px; border-radius:20px;
+    cursor:pointer; display:none; align-items:center; gap:5px;
+    font-family:inherit;
+  }
+  .btn-clear:hover { background:#fff0f0; }
+
+  /* ── Upload Modal ── */
+  .modal-backdrop {
+    position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    display:none; align-items:flex-end; justify-content:center;
+    z-index:200;
+  }
+  .modal-backdrop.open { display:flex; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width:100%; max-width:640px;
+    padding: 1.5rem 2rem 2.5rem;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal-handle {
+    width:40px; height:4px; border-radius:2px;
+    background: var(--pink-mid);
+    margin: 0 auto 1.25rem;
+  }
+  .modal-title { font-size:16px; font-weight:700; margin-bottom:1.25rem; }
+
+  .upload-zone {
+    border: 2px dashed var(--pink-mid);
+    border-radius: var(--radius);
+    background: var(--bg);
+    padding: 2.5rem 2rem;
+    text-align:center; cursor:pointer; transition:all 0.2s;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color:var(--pink); background:var(--pink-light); }
+  .upload-icon { font-size:36px; margin-bottom:10px; }
+  .upload-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+  .upload-desc { font-size:13px; color:var(--muted); line-height:1.7; }
+  .format-badge { display:inline-block; margin-top:10px; background:var(--pink-light); color:var(--pink-dark); font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
+
+  /* ── Progress ── */
+  .progress-wrap { margin-top:1rem; display:none; }
+  .progress-track { background:var(--pink-light); border-radius:20px; height:6px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--pink); border-radius:20px; width:0%; transition:width 0.25s; }
+  .progress-label { font-size:12px; color:var(--pink-dark); margin-top:6px; text-align:center; }
+
+  /* ── Gallery ── */
+  .gallery-section { padding: 1.5rem 2rem 4rem; }
+  .gallery-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
+    gap:14px;
+  }
+  .photo-card {
+    position:relative; border-radius:var(--radius); overflow:hidden;
+    aspect-ratio:1; background:#f3e8ee; border:1px solid var(--border);
+    cursor:pointer; transition:transform 0.2s, box-shadow 0.2s;
+  }
+  .photo-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(212,83,126,0.15); }
+  .photo-card img { width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-overlay {
+    position:absolute; inset:0; background:rgba(0,0,0,0.38);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .photo-card:hover .photo-overlay { opacity:1; }
+  .btn-delete {
+    background:rgba(255,255,255,0.93); border:none; border-radius:50%;
+    width:44px; height:44px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; transition:transform 0.1s;
+  }
+  .btn-delete:hover { transform:scale(1.12); }
+  .photo-name {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:24px 8px 7px;
+    background:linear-gradient(transparent,rgba(0,0,0,0.55));
+    color:#fff; font-size:11px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .photo-card:hover .photo-name { opacity:1; }
+
+  /* failed */
+  .photo-card.failed { cursor:default; }
+  .photo-card.failed img { display:none; }
+  .fail-body { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; text-align:center; gap:6px; }
+  .fail-icon { font-size:26px; }
+  .fail-title { font-size:12px; font-weight:700; }
+  .fail-sub { font-size:11px; color:var(--muted); line-height:1.5; }
+
+  /* ── Empty ── */
+  .empty-state { text-align:center; padding:5rem 2rem; display:none; }
+  .empty-state.show { display:block; }
+  .empty-icon { font-size:64px; margin-bottom:16px; }
+  .empty-title { font-size:18px; font-weight:700; margin-bottom:8px; }
+  .empty-sub { font-size:13px; color:var(--muted); line-height:1.8; }
+  .btn-empty-upload {
+    margin-top:20px; display:inline-flex; align-items:center; gap:8px;
+    background:var(--pink); color:#fff; border:none; border-radius:24px;
+    padding:12px 24px; font-size:15px; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:background 0.15s;
+  }
+  .btn-empty-upload:hover { background:var(--pink-dark); }
+
+  /* ── Lightbox ── */
+  .lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:300; padding:2rem; }
+  .lightbox.open { display:flex; }
+  .lightbox img { max-width:90vw; max-height:88vh; border-radius:var(--radius); object-fit:contain; }
+  .lightbox-close { position:fixed; top:16px; right:20px; background:rgba(255,255,255,0.15); border:none; border-radius:50%; width:44px; height:44px; color:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .lightbox-close:hover { background:rgba(255,255,255,0.28); }
+
+  /* ── Toast ── */
+  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:#2C2C2A; color:#fff; padding:11px 22px; border-radius:24px; font-size:14px; white-space:nowrap; transition:transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index:400; pointer-events:none; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  @media(max-width:600px) {
+    .site-header { padding:0.9rem 1rem; }
+    .gallery-section { padding:1rem 1rem 4rem; }
+    .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+    .logo-sub { display:none; }
+    .modal-sheet { padding:1.25rem 1.25rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-icon">🍼</div>
+    <div>
+      <div class="logo-text">아기 사진 갤러리</div>
+      <div class="logo-sub">소중한 순간들을 담아보세요</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill" id="stat-pill">0장</div>
+    <button class="btn-clear" id="btn-clear" onclick="clearAll()">🗑 전체 삭제</button>
+    <button class="btn-upload-header" onclick="openModal()">＋ 사진 추가</button>
+  </div>
+</header>
+
+<!-- ── Gallery ── -->
+<section class="gallery-section">
+  <div class="gallery-grid" id="gallery"></div>
+  <div class="empty-state show" id="empty-state">
+    <div class="empty-icon">📸</div>
+    <div class="empty-title">아직 사진이 없어요</div>
+    <div class="empty-sub">첫 번째 사진을 올려보세요 ☺️<br><small style="color:var(--muted);font-size:12px;">JPG · PNG · WEBP · HEIC 지원</small></div>
+    <button class="btn-empty-upload" onclick="openModal()">＋ 사진 추가하기</button>
+  </div>
+</section>
+
+<!-- ── Upload Modal (bottom sheet) ── -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📷 사진 추가</div>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept="image/*,.heic,.heif" multiple style="display:none">
+      <div class="upload-icon">🖼️</div>
+      <div class="upload-title">클릭하거나 파일을 여기에 드래그</div>
+      <div class="upload-desc">여러 장 동시 업로드 가능<br>JPG · PNG · GIF · WEBP · HEIC</div>
+      <span class="format-badge">📱 iPhone 사진 포함</span>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label">처리 중...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Lightbox ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const photos = [];
+
+// ── Modal ───────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '0%';
+}
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+// ── Toast / UI ──────────────────────────────────────────
+function showToast(msg, dur) {
+  dur = dur || 2500;
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, dur);
+}
+
+function updateUI() {
+  var n = photos.length;
+  document.getElementById('stat-pill').textContent = n + '장';
+  document.getElementById('empty-state').classList.toggle('show', n === 0);
+  var cb = document.getElementById('btn-clear');
+  cb.style.display = n > 0 ? 'flex' : 'none';
+}
+
+// ── File conversion ─────────────────────────────────────
+function fileToDataURL(file) {
+  return new Promise(function(res, rej) {
+    var r = new FileReader();
+    r.onload = function(e) { res(e.target.result); };
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function heicToJpeg(file) {
+  return new Promise(function(res, rej) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth || img.width;
+        c.height = img.naturalHeight || img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL('image/jpeg', 0.88));
+      } catch(e) { URL.revokeObjectURL(url); rej(e); }
+    };
+    img.onerror = function() { URL.revokeObjectURL(url); rej(new Error('load fail')); };
+    img.src = url;
+  });
+}
+
+async function processFile(file) {
+  var isHEIC = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+  if (isHEIC) {
+    try { return { ok:true, dataUrl: await heicToJpeg(file), name:file.name, converted:true }; }
+    catch(e) { return { ok:false, name:file.name }; }
+  }
+  return { ok:true, dataUrl: await fileToDataURL(file), name:file.name };
+}
+
+// ── Handle files ────────────────────────────────────────
+async function handleFiles(fileList) {
+  var files = Array.from(fileList).filter(function(f) {
+    return f.type.startsWith('image/') || /\.(heic|heif|jpg|jpeg|png|gif|webp|bmp)$/i.test(f.name);
+  });
+  if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
+
+  var pw = document.getElementById('progress-wrap');
+  var fill = document.getElementById('progress-fill');
+  var label = document.getElementById('progress-label');
+  pw.style.display = 'block';
+
+  var added = 0, failed = 0, converted = 0;
+  for (var i = 0; i < files.length; i++) {
+    label.textContent = '처리 중... (' + (i+1) + '/' + files.length + ')  ' + files[i].name;
+    fill.style.width = ((i+1)/files.length*100) + '%';
+    var result = await processFile(files[i]);
+    var id = Date.now() + Math.random();
+    if (result.ok) {
+      photos.push({ id:id, dataUrl:result.dataUrl, name:result.name });
+      renderCard({ id:id, dataUrl:result.dataUrl, name:result.name }, false);
+      added++;
+      if (result.converted) converted++;
+    } else {
+      photos.push({ id:id, name:result.name, failed:true });
+      renderCard({ id:id, name:result.name }, true);
+      failed++;
+    }
+    updateUI();
+  }
+
+  setTimeout(closeModal, 400);
+  var msg = added + '장 추가됨 🎉';
+  if (converted) msg += ' · HEIC ' + converted + '장 변환';
+  if (failed) msg += ' · ' + failed + '장 미리보기 불가';
+  showToast(msg, 3000);
+}
+
+// ── Render ──────────────────────────────────────────────
+function renderCard(photo, isFailed) {
+  var grid = document.getElementById('gallery');
+  var card = document.createElement('div');
+  card.className = 'photo-card' + (isFailed ? ' failed' : '');
+  card.dataset.id = photo.id;
+
+  if (isFailed) {
+    card.innerHTML =
+      '<div class="fail-body">' +
+        '<div class="fail-icon">⚠️</div>' +
+        '<div class="fail-title">미리보기 불가</div>' +
+        '<div class="fail-sub">Safari에서<br>지원됩니다</div>' +
+        '<button class="btn-delete" onclick="deletePhoto(event,\'' + photo.id + '\')" style="margin-top:8px;width:36px;height:36px;font-size:15px;">🗑</button>' +
+      '</div>';
+  } else {
+    var img = document.createElement('img');
+    img.alt = photo.name;
+    img.loading = 'lazy';
+    img.src = photo.dataUrl;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'photo-overlay';
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn-delete';
+    delBtn.textContent = '🗑';
+    delBtn.addEventListener('click', function(e) { deletePhoto(e, photo.id); });
+    overlay.appendChild(delBtn);
+
+    var nameDiv = document.createElement('div');
+    nameDiv.className = 'photo-name';
+    nameDiv.textContent = photo.name;
+
+    card.appendChild(img);
+    card.appendChild(overlay);
+    card.appendChild(nameDiv);
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.btn-delete')) return;
+      openLightbox(photo.dataUrl);
+    });
+  }
+  grid.appendChild(card);
+}
+
+// ── Delete ──────────────────────────────────────────────
+function deletePhoto(e, id) {
+  e.stopPropagation();
+  var idx = photos.findIndex(function(p) { return String(p.id) === String(id); });
+  if (idx === -1) return;
+  photos.splice(idx, 1);
+  var el = document.querySelector('[data-id="' + id + '"]');
+  if (el) el.remove();
+  updateUI();
+  showToast('사진이 삭제되었습니다');
+}
+
+function clearAll() {
+  if (!photos.length) return;
+  if (!confirm(photos.length + '장의 사진을 모두 삭제할까요?')) return;
+  photos.length = 0;
+  document.getElementById('gallery').innerHTML = '';
+  updateUI();
+  showToast('모든 사진이 삭제되었습니다');
+}
+
+// ── Lightbox ────────────────────────────────────────────
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeLightbox(); closeModal(); } });
+
+// ── Drag & drop into modal ───────────────────────────────
+var zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
+zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  if (e.target.files && e.target.files.length) handleFiles(e.target.files);
+  e.target.value = '';
+});
+
+updateUI();
+</script>
+</body>
+</html>
