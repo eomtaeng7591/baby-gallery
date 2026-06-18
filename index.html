@@ -21,8 +21,6 @@
   .stat-pill { background:var(--pink-light); color:var(--pink-dark); font-size:13px; font-weight:700; padding:5px 13px; border-radius:20px; }
   .btn-upload-header { background:var(--pink); color:#fff; border:none; border-radius:20px; padding:7px 16px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:inherit; transition:background 0.15s; }
   .btn-upload-header:hover { background:var(--pink-dark); }
-  .btn-refresh { background:none; border:1px solid var(--border); color:var(--muted); font-size:13px; padding:6px 13px; border-radius:20px; cursor:pointer; font-family:inherit; }
-  .btn-refresh:hover { background:var(--pink-light); }
   .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:flex-end; justify-content:center; z-index:200; }
   .modal-backdrop.open { display:flex; }
   .modal-sheet { background:var(--surface); border-radius:24px 24px 0 0; width:100%; max-width:640px; padding:1.5rem 2rem 2.5rem; animation:slideUp 0.25s ease; }
@@ -57,6 +55,10 @@
   .empty-sub { font-size:13px; color:var(--muted); line-height:1.8; }
   .btn-empty-upload { margin-top:20px; display:inline-flex; align-items:center; gap:8px; background:var(--pink); color:#fff; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
   .btn-empty-upload:hover { background:var(--pink-dark); }
+  .loading-wrap { text-align:center; padding:4rem 2rem; color:var(--muted); font-size:14px; display:none; }
+  .loading-wrap.show { display:block; }
+  .spinner { width:36px; height:36px; border:3px solid var(--pink-mid); border-top-color:var(--pink); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
   .lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:300; padding:2rem; }
   .lightbox.open { display:flex; }
   .lightbox img { max-width:90vw; max-height:88vh; border-radius:var(--radius); object-fit:contain; }
@@ -64,9 +66,6 @@
   .lightbox-close:hover { background:rgba(255,255,255,0.28); }
   .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:#2C2C2A; color:#fff; padding:11px 22px; border-radius:24px; font-size:14px; white-space:nowrap; transition:transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index:400; pointer-events:none; }
   .toast.show { transform:translateX(-50%) translateY(0); }
-  .loading-wrap { text-align:center; padding:3rem; color:var(--muted); font-size:14px; }
-  .spinner { width:32px; height:32px; border:3px solid var(--pink-mid); border-top-color:var(--pink); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
-  @keyframes spin { to{transform:rotate(360deg)} }
   @media(max-width:600px) {
     .site-header{padding:0.9rem 1rem;} .gallery-section{padding:1rem 1rem 4rem;}
     .gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
@@ -86,13 +85,12 @@
   </div>
   <div class="header-right">
     <div class="stat-pill" id="stat-pill">0장</div>
-    <button class="btn-refresh" onclick="loadPhotos()">↻ 새로고침</button>
     <button class="btn-upload-header" onclick="openModal()">＋ 사진 추가</button>
   </div>
 </header>
 
 <section class="gallery-section">
-  <div id="loading-wrap" class="loading-wrap">
+  <div class="loading-wrap show" id="loading-wrap">
     <div class="spinner"></div>
     사진 불러오는 중...
   </div>
@@ -130,29 +128,29 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  설정값
-// ══════════════════════════════════════════════════
-const CLOUD  = 'djmvsyi3g';
-const PRESET = 'baby_gallery';
-const FOLDER = 'baby-gallery';
+// ══════════════════════════════════════════════
+var CLOUD   = 'djmvsyi3g';
+var PRESET  = 'baby_gallery';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzSKmayUu3zBrkJ-8NiFkjBqdkPvKJjGyAG_g0BzcjfHoLbK4CUFp846M7VQRnFaf80/exec';
 
-// ── Toast ─────────────────────────────────────────
+// ── Toast ──────────────────────────────────────
 function showToast(msg, dur) {
   var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, dur || 2500);
+  setTimeout(function(){ t.classList.remove('show'); }, dur||2500);
 }
 
-// ── UI ────────────────────────────────────────────
+// ── UI ─────────────────────────────────────────
 function updateUI() {
   var n = document.querySelectorAll('.photo-card').length;
   document.getElementById('stat-pill').textContent = n + '장';
   document.getElementById('empty-state').classList.toggle('show', n === 0);
 }
 
-// ── Modal ─────────────────────────────────────────
+// ── Modal ──────────────────────────────────────
 function openModal() {
   document.getElementById('modal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -167,50 +165,31 @@ function handleBackdropClick(e) {
   if (e.target === document.getElementById('modal-backdrop')) closeModal();
 }
 
-// ── 사진 목록 불러오기 (Cloudinary Search API) ────
+// ── 사진 목록 불러오기 (Google Sheets) ────────
 async function loadPhotos() {
-  var loading = document.getElementById('loading-wrap');
-  var grid    = document.getElementById('gallery');
-  loading.style.display = 'block';
-  grid.innerHTML = '';
-
+  document.getElementById('loading-wrap').classList.add('show');
+  document.getElementById('gallery').innerHTML = '';
   try {
-    // Cloudinary의 /image/list/{tag}.json 엔드포인트 사용
-    // 업로드 시 태그를 붙여서 목록을 조회합니다
-    var url = 'https://res.cloudinary.com/' + CLOUD + '/image/list/' + FOLDER + '.json';
-    var res = await fetch(url + '?_=' + Date.now());
-
-    if (!res.ok) throw new Error(res.status);
-    var data = await res.json();
-
-    var resources = (data.resources || []).sort(function(a, b) {
-      return (b.created_at || '').localeCompare(a.created_at || '');
-    });
-
-    resources.forEach(function(r) {
-      var imgUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto,f_auto,w_600/' + r.public_id;
-      var fullUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto/' + r.public_id;
-      renderCard(r.public_id, imgUrl, fullUrl, r.public_id.split('/').pop());
-    });
-
+    var res  = await fetch(GAS_URL + '?_=' + Date.now());
+    var list = await res.json();
+    list.forEach(function(item) { renderCard(item, false); });
   } catch(e) {
-    console.warn('목록 로드 실패, 빈 갤러리로 시작합니다.', e);
+    console.error('로드 실패:', e);
+    showToast('사진 목록을 불러오지 못했습니다');
   }
-
-  loading.style.display = 'none';
+  document.getElementById('loading-wrap').classList.remove('show');
   updateUI();
 }
 
-// ── 카드 렌더 ─────────────────────────────────────
-function renderCard(publicId, thumbUrl, fullUrl, name, prepend) {
+// ── 카드 렌더 ──────────────────────────────────
+function renderCard(item, prepend) {
   var grid = document.getElementById('gallery');
   var card = document.createElement('div');
   card.className = 'photo-card';
-  card.dataset.publicId = publicId;
 
   var img = document.createElement('img');
-  img.src = thumbUrl;
-  img.alt = name || '';
+  img.src = item.url;
+  img.alt = item.name || '';
   img.loading = 'lazy';
 
   var overlay = document.createElement('div');
@@ -220,24 +199,20 @@ function renderCard(publicId, thumbUrl, fullUrl, name, prepend) {
   delBtn.textContent = '🗑';
   delBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    if (confirm('이 사진을 삭제할까요?')) {
-      card.remove();
-      updateUI();
-      showToast('사진이 삭제되었습니다');
-    }
+    deletePhoto(item, card);
   });
   overlay.appendChild(delBtn);
 
   var nameDiv = document.createElement('div');
   nameDiv.className = 'photo-name';
-  nameDiv.textContent = name || '';
+  nameDiv.textContent = item.name || '';
 
   card.appendChild(img);
   card.appendChild(overlay);
   card.appendChild(nameDiv);
   card.addEventListener('click', function(e) {
     if (e.target.closest('.btn-delete')) return;
-    openLightbox(fullUrl);
+    openLightbox(item.url);
   });
 
   if (prepend && grid.firstChild) {
@@ -247,11 +222,9 @@ function renderCard(publicId, thumbUrl, fullUrl, name, prepend) {
   }
 }
 
-// ── 업로드 ────────────────────────────────────────
+// ── 업로드 ─────────────────────────────────────
 async function handleFiles(fileList) {
-  var files = Array.from(fileList).filter(function(f) {
-    return f.type.startsWith('image/');
-  });
+  var files = Array.from(fileList).filter(function(f){ return f.type.startsWith('image/'); });
   if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
 
   var pw   = document.getElementById('progress-wrap');
@@ -263,29 +236,37 @@ async function handleFiles(fileList) {
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
     lbl.textContent = '업로드 중... (' + (i+1) + '/' + files.length + ')  ' + file.name;
-    fill.style.width = ((i+1) / files.length * 100) + '%';
+    fill.style.width = ((i+1)/files.length*100) + '%';
 
     try {
+      // 1. Cloudinary에 이미지 업로드
       var fd = new FormData();
       fd.append('file', file);
       fd.append('upload_preset', PRESET);
-      fd.append('folder', FOLDER);
-      fd.append('tags', FOLDER);   // ← 태그로 목록 조회를 위해 반드시 필요
+      fd.append('folder', 'baby-gallery');
 
-      var res  = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', {
-        method: 'POST', body: fd
+      var cRes  = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', { method:'POST', body:fd });
+      var cData = await cRes.json();
+      if (cData.error) throw new Error(cData.error.message);
+
+      var item = {
+        url: cData.secure_url,
+        name: file.name,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // 2. Google Sheets에 URL 저장
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action:'add', url:item.url, name:item.name, uploadedAt:item.uploadedAt })
       });
-      var data = await res.json();
-      if (data.error) throw new Error(data.error.message);
 
-      var thumbUrl = 'https://res.cloudinary.com/' + CLOUD + '/image/upload/q_auto,f_auto,w_600/' + data.public_id;
-      var fullUrl  = data.secure_url;
-      renderCard(data.public_id, thumbUrl, fullUrl, file.name, true);
+      renderCard(item, true);
       done++;
       updateUI();
     } catch(e) {
       console.error('업로드 실패:', e);
-      showToast('업로드 실패: ' + file.name + ' (' + (e.message || '') + ')');
+      showToast('업로드 실패: ' + file.name);
     }
   }
 
@@ -293,7 +274,25 @@ async function handleFiles(fileList) {
   if (done > 0) showToast(done + '장 업로드 완료 🎉', 3000);
 }
 
-// ── Lightbox ──────────────────────────────────────
+// ── 삭제 ───────────────────────────────────────
+async function deletePhoto(item, card) {
+  if (!confirm('이 사진을 삭제할까요?')) return;
+  try {
+    card.style.opacity = '0.4';
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'delete', url:item.url })
+    });
+    card.remove();
+    updateUI();
+    showToast('사진이 삭제되었습니다');
+  } catch(e) {
+    card.style.opacity = '1';
+    showToast('삭제 중 오류가 발생했습니다');
+  }
+}
+
+// ── Lightbox ────────────────────────────────────
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('open');
@@ -304,20 +303,20 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') { closeLightbox(); closeModal(); }
+  if (e.key==='Escape') { closeLightbox(); closeModal(); }
 });
 
-// ── Drag & drop ───────────────────────────────────
+// ── Drag & drop ─────────────────────────────────
 var zone = document.getElementById('upload-zone');
-zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
-zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
-zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
-document.getElementById('file-input').addEventListener('change', function(e) {
+zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', function(){ zone.classList.remove('drag'); });
+zone.addEventListener('drop', function(e){ e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+document.getElementById('file-input').addEventListener('change', function(e){
   if (e.target.files && e.target.files.length) handleFiles(e.target.files);
   e.target.value = '';
 });
 
-// ── 시작 ─────────────────────────────────────────
+// ── 시작 ───────────────────────────────────────
 loadPhotos();
 </script>
 </body>
