@@ -3,116 +3,414 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍼 아기 사진 갤러리</title>
+<title>🍼 우리 아기 갤러리</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --pink-light: #FBEAF0; --pink-mid: #F4C0D1; --pink: #D4537E; --pink-dark: #993556;
-    --bg: #fff9fb; --surface: #ffffff; --border: rgba(212,83,126,0.15);
-    --text: #2C2C2A; --muted: #888780; --radius: 16px;
-  }
-  body { font-family: -apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-  .site-header { background:var(--surface); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-  .logo { display:flex; align-items:center; gap:10px; }
-  .logo-icon { width:38px; height:38px; border-radius:50%; background:var(--pink-light); display:flex; align-items:center; justify-content:center; font-size:18px; }
-  .logo-text { font-size:17px; font-weight:700; }
-  .logo-sub { font-size:11px; color:var(--muted); }
-  .header-right { display:flex; align-items:center; gap:8px; }
-  .stat-pill { background:var(--pink-light); color:var(--pink-dark); font-size:13px; font-weight:700; padding:5px 13px; border-radius:20px; }
-  .btn-upload-header { background:var(--pink); color:#fff; border:none; border-radius:20px; padding:7px 16px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:inherit; transition:background 0.15s; }
-  .btn-upload-header:hover { background:var(--pink-dark); }
-  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:flex-end; justify-content:center; z-index:200; }
-  .modal-backdrop.open { display:flex; }
-  .modal-sheet { background:var(--surface); border-radius:24px 24px 0 0; width:100%; max-width:640px; padding:1.5rem 2rem 2.5rem; animation:slideUp 0.25s ease; }
-  @keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
-  .modal-handle { width:40px; height:4px; border-radius:2px; background:var(--pink-mid); margin:0 auto 1.25rem; }
-  .modal-title { font-size:16px; font-weight:700; margin-bottom:1.25rem; }
-  .upload-zone { border:2px dashed var(--pink-mid); border-radius:var(--radius); background:var(--bg); padding:2.5rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; }
-  .upload-zone:hover, .upload-zone.drag { border-color:var(--pink); background:var(--pink-light); }
-  .upload-icon { font-size:36px; margin-bottom:10px; }
-  .upload-title { font-size:15px; font-weight:700; margin-bottom:6px; }
-  .upload-desc { font-size:13px; color:var(--muted); line-height:1.7; }
-  .format-badge { display:inline-block; margin-top:10px; background:var(--pink-light); color:var(--pink-dark); font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-  .progress-wrap { margin-top:1rem; display:none; }
-  .progress-track { background:var(--pink-light); border-radius:20px; height:8px; overflow:hidden; }
-  .progress-fill { height:100%; background:var(--pink); border-radius:20px; width:0%; transition:width 0.25s; }
-  .progress-label { font-size:12px; color:var(--pink-dark); margin-top:6px; text-align:center; }
-  .gallery-section { padding:1.5rem 2rem 4rem; }
-  .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; }
-  .photo-card { position:relative; border-radius:var(--radius); overflow:hidden; aspect-ratio:1; background:#f3e8ee; border:1px solid var(--border); cursor:pointer; transition:transform 0.2s,box-shadow 0.2s; }
-  .photo-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(212,83,126,0.15); }
-  .photo-card img { width:100%; height:100%; object-fit:cover; display:block; }
-  .photo-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.38); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; }
-  .photo-card:hover .photo-overlay { opacity:1; }
-  .btn-delete { background:rgba(255,255,255,0.93); border:none; border-radius:50%; width:44px; height:44px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:transform 0.1s; }
-  .btn-delete:hover { transform:scale(1.12); }
-  .photo-name { position:absolute; bottom:0; left:0; right:0; padding:24px 8px 7px; background:linear-gradient(transparent,rgba(0,0,0,0.55)); color:#fff; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity 0.2s; }
-  .photo-card:hover .photo-name { opacity:1; }
-  .empty-state { text-align:center; padding:5rem 2rem; display:none; }
-  .empty-state.show { display:block; }
-  .empty-icon { font-size:64px; margin-bottom:16px; }
-  .empty-title { font-size:18px; font-weight:700; margin-bottom:8px; }
-  .empty-sub { font-size:13px; color:var(--muted); line-height:1.8; }
-  .btn-empty-upload { margin-top:20px; display:inline-flex; align-items:center; gap:8px; background:var(--pink); color:#fff; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
-  .btn-empty-upload:hover { background:var(--pink-dark); }
-  .loading-wrap { text-align:center; padding:4rem 2rem; display:none; }
-  .loading-wrap.show { display:block; }
-  .spinner { width:36px; height:36px; border:3px solid var(--pink-mid); border-top-color:var(--pink); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:300; padding:2rem; }
-  .lightbox.open { display:flex; }
-  .lightbox img { max-width:90vw; max-height:88vh; border-radius:var(--radius); object-fit:contain; }
-  .lightbox-close { position:fixed; top:16px; right:20px; background:rgba(255,255,255,0.15); border:none; border-radius:50%; width:44px; height:44px; color:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .lightbox-close:hover { background:rgba(255,255,255,0.28); }
-  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:#2C2C2A; color:#fff; padding:11px 22px; border-radius:24px; font-size:14px; white-space:nowrap; transition:transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index:400; pointer-events:none; }
-  .toast.show { transform:translateX(-50%) translateY(0); }
-  @media(max-width:600px) {
-    .site-header{padding:0.9rem 1rem;} .gallery-section{padding:1rem 1rem 4rem;}
-    .gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
-    .logo-sub{display:none;} .modal-sheet{padding:1.25rem 1.25rem 2rem;}
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #FFF8F0;
+  --peach: #FFD6C0;
+  --rose: #FF8B6B;
+  --rose-dark: #E5623E;
+  --mint: #C8F0E8;
+  --mint-dark: #4ABFA3;
+  --lavender: #E8D5F5;
+  --lav-dark: #9B6DC7;
+  --yellow: #FFF0A0;
+  --text: #3A2E28;
+  --muted: #9A8880;
+  --surface: #ffffff;
+  --radius: 20px;
+  --radius-lg: 28px;
+}
+body {
+  font-family: 'Nunito', -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  background: linear-gradient(160deg, #FFF0E8 0%, #F5E8FF 50%, #E8F5FF 100%);
+  padding: 2.5rem 2rem 3rem;
+  overflow: hidden;
+  text-align: center;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,180,140,0.3) 0%, transparent 70%);
+  top: -80px; right: -60px;
+  border-radius: 50%;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(180,140,255,0.2) 0%, transparent 70%);
+  bottom: -40px; left: -40px;
+  border-radius: 50%;
+}
+
+/* floating blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: float 6s ease-in-out infinite;
+}
+.blob-1 { width:60px; height:60px; background:#FFD6C0; top:20px; left:10%; animation-delay:0s; }
+.blob-2 { width:40px; height:40px; background:#C8F0E8; top:60px; right:15%; animation-delay:1.5s; }
+.blob-3 { width:30px; height:30px; background:#E8D5F5; bottom:30px; left:20%; animation-delay:3s; }
+.blob-4 { width:50px; height:50px; background:#FFF0A0; bottom:20px; right:10%; animation-delay:0.8s; }
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(5deg); }
+}
+
+.hero-content { position: relative; z-index: 2; }
+
+/* SVG 아기 일러스트 */
+.hero-illustration {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 1.2rem;
+  animation: bounce 3s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.hero-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.hero-title span {
+  background: linear-gradient(135deg, #FF8B6B, #C87FD4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+.hero-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 30px;
+  padding: 8px 18px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.hero-stats .count {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--rose);
+}
+
+/* ── Upload FAB ── */
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  z-index: 100;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8B6B, #C87FD4);
+  border: none;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(255,100,80,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: pulse-fab 3s ease-in-out infinite;
+}
+.fab:hover { transform: scale(1.1); box-shadow: 0 8px 32px rgba(255,100,80,0.5); }
+@keyframes pulse-fab {
+  0%,100% { box-shadow: 0 6px 24px rgba(255,100,80,0.4); }
+  50% { box-shadow: 0 6px 36px rgba(200,127,212,0.6); }
+}
+
+/* ── Gallery ── */
+.gallery-section { padding: 1.5rem 1.25rem 6rem; }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* masonry feel - every 7th card is big */
+.photo-card:nth-child(7n+1) {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.photo-card {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--peach);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+}
+.photo-card:nth-child(7n+1) { aspect-ratio: auto; }
+.photo-card:hover { transform: scale(1.02); }
+.photo-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.photo-card:hover img { transform: scale(1.05); }
+
+/* 귀여운 카드 테두리 색상 */
+.photo-card:nth-child(4n+1) { box-shadow: 0 4px 16px rgba(255,139,107,0.25); }
+.photo-card:nth-child(4n+2) { box-shadow: 0 4px 16px rgba(155,109,199,0.2); }
+.photo-card:nth-child(4n+3) { box-shadow: 0 4px 16px rgba(74,191,163,0.2); }
+.photo-card:nth-child(4n+4) { box-shadow: 0 4px 16px rgba(255,200,80,0.25); }
+
+/* ── Lightbox (삭제버튼 여기에) ── */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(20,15,10,0.92);
+  display: none; align-items: center; justify-content: center;
+  z-index: 300;
+  flex-direction: column;
+  gap: 16px;
+  padding: 1.5rem;
+}
+.lightbox.open { display: flex; }
+.lightbox img {
+  max-width: 92vw; max-height: 72vh;
+  border-radius: var(--radius);
+  object-fit: contain;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.lightbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lightbox-close {
+  background: rgba(255,255,255,0.15);
+  border: none; border-radius: 50%;
+  width: 48px; height: 48px;
+  color: #fff; font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.15s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.lightbox-delete {
+  background: rgba(255,80,60,0.85);
+  border: none; border-radius: 24px;
+  padding: 12px 24px;
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Nunito', sans-serif;
+  backdrop-filter: blur(8px);
+  transition: background 0.15s, transform 0.1s;
+}
+.lightbox-delete:hover { background: rgba(220,50,30,0.9); transform: scale(1.03); }
+.lightbox-name {
+  color: rgba(255,255,255,0.6);
+  font-size: 12px; font-weight: 600;
+  text-align: center;
+  max-width: 280px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none; align-items: flex-end; justify-content: center;
+  z-index: 200;
+}
+.modal-backdrop.open { display: flex; }
+.modal-sheet {
+  background: var(--surface);
+  border-radius: 28px 28px 0 0;
+  width: 100%; max-width: 600px;
+  padding: 1.5rem 1.75rem 2.5rem;
+  animation: slideUp 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp { from{transform:translateY(80px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-handle { width:40px; height:4px; border-radius:2px; background:#E8E0D8; margin:0 auto 1.25rem; }
+.modal-title { font-size:18px; font-weight:800; margin-bottom:1.25rem; }
+.upload-zone {
+  border: 2.5px dashed #FFCDB8;
+  border-radius: var(--radius);
+  background: #FFF8F4;
+  padding: 2.5rem 1.5rem;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--rose); background: #FFF0E8; }
+.upload-zone-icon { font-size: 40px; margin-bottom: 10px; }
+.upload-zone-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.upload-zone-desc { font-size: 13px; color: var(--muted); font-weight: 600; }
+.progress-wrap { margin-top: 1rem; display: none; }
+.progress-track { background: #FFE8DC; border-radius: 20px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--rose), #C87FD4); border-radius: 20px; width: 0%; transition: width 0.25s; }
+.progress-label { font-size: 12px; color: var(--rose); margin-top: 6px; text-align: center; font-weight: 700; }
+
+/* ── Empty ── */
+.empty-state { text-align: center; padding: 3rem 1rem; display: none; }
+.empty-state.show { display: block; }
+.empty-anim { font-size: 64px; margin-bottom: 14px; animation: wiggle 2s ease-in-out infinite; }
+@keyframes wiggle { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+.empty-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.empty-sub { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+/* ── Loading ── */
+.loading-wrap { text-align: center; padding: 4rem 2rem; display: none; }
+.loading-wrap.show { display: block; }
+.loading-hearts { font-size: 32px; animation: heartbeat 1s ease-in-out infinite; }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+.loading-text { font-size: 13px; color: var(--muted); margin-top: 12px; font-weight: 700; }
+
+/* ── Toast ── */
+.toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(60px); background:#3A2E28; color:#fff; padding:12px 22px; border-radius:24px; font-size:14px; font-weight:700; white-space:nowrap; transition:transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index:500; pointer-events:none; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+@media(max-width:480px) {
+  .hero { padding: 2rem 1.25rem 2.5rem; }
+  .hero-title { font-size: 24px; }
+  .gallery-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .gallery-section { padding: 1rem 1rem 6rem; }
+}
 </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="logo">
-    <div class="logo-icon">🍼</div>
-    <div>
-      <div class="logo-text">아기 사진 갤러리</div>
-      <div class="logo-sub">소중한 순간들을 담아보세요</div>
-    </div>
-  </div>
-  <div class="header-right">
-    <div class="stat-pill" id="stat-pill">0장</div>
-    <button class="btn-upload-header" onclick="openModal()">＋ 사진 추가</button>
-  </div>
-</header>
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="hero-content">
 
-<section class="gallery-section">
-  <div class="loading-wrap show" id="loading-wrap">
-    <div class="spinner"></div>
-    사진 불러오는 중...
-  </div>
-  <div class="gallery-grid" id="gallery"></div>
-  <div class="empty-state" id="empty-state">
-    <div class="empty-icon">📸</div>
-    <div class="empty-title">아직 사진이 없어요</div>
-    <div class="empty-sub">첫 번째 사진을 올려보세요 ☺️</div>
-    <button class="btn-empty-upload" onclick="openModal()">＋ 사진 추가하기</button>
+    <!-- 아기 SVG 일러스트 -->
+    <div class="hero-illustration">
+      <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <!-- 배경 원 -->
+        <circle cx="80" cy="80" r="75" fill="#FFF0E8" opacity="0.8"/>
+        <!-- 몸 -->
+        <ellipse cx="80" cy="105" rx="32" ry="28" fill="#FFDCC8"/>
+        <!-- 옷 -->
+        <ellipse cx="80" cy="115" rx="32" ry="20" fill="#FFB8D4"/>
+        <!-- 별 장식 -->
+        <text x="65" y="120" font-size="10" fill="white" font-weight="bold">★ ★</text>
+        <!-- 머리 -->
+        <circle cx="80" cy="72" r="30" fill="#FFDCC8"/>
+        <!-- 귀 -->
+        <circle cx="50" cy="74" r="8" fill="#FFDCC8"/>
+        <circle cx="110" cy="74" r="8" fill="#FFDCC8"/>
+        <circle cx="50" cy="74" r="5" fill="#FFB8A8"/>
+        <circle cx="110" cy="74" r="5" fill="#FFB8A8"/>
+        <!-- 머리카락 -->
+        <path d="M56 50 Q80 35 104 50 Q100 42 80 38 Q60 42 56 50Z" fill="#8B5A3C"/>
+        <path d="M58 48 Q62 40 68 44" stroke="#8B5A3C" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M102 48 Q98 40 92 44" stroke="#8B5A3C" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- 눈 -->
+        <ellipse cx="68" cy="72" rx="6" ry="7" fill="white"/>
+        <ellipse cx="92" cy="72" rx="6" ry="7" fill="white"/>
+        <circle cx="69" cy="73" r="4" fill="#5C3D2E"/>
+        <circle cx="93" cy="73" r="4" fill="#5C3D2E"/>
+        <circle cx="70" cy="71" r="1.5" fill="white"/>
+        <circle cx="94" cy="71" r="1.5" fill="white"/>
+        <!-- 속눈썹 -->
+        <path d="M63 66 Q65 63 68 65" stroke="#8B5A3C" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M87 65 Q90 62 93 65" stroke="#8B5A3C" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <!-- 볼터치 -->
+        <ellipse cx="58" cy="80" rx="8" ry="5" fill="#FFB8B8" opacity="0.6"/>
+        <ellipse cx="102" cy="80" rx="8" ry="5" fill="#FFB8B8" opacity="0.6"/>
+        <!-- 코 -->
+        <ellipse cx="80" cy="81" rx="4" ry="3" fill="#F0A888"/>
+        <!-- 입 -->
+        <path d="M72 90 Q80 97 88 90" stroke="#E07878" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- 왼팔 -->
+        <ellipse cx="48" cy="108" rx="10" ry="7" fill="#FFDCC8" transform="rotate(-20 48 108)"/>
+        <circle cx="42" cy="113" r="8" fill="#FFDCC8"/>
+        <!-- 오른팔 -->
+        <ellipse cx="112" cy="108" rx="10" ry="7" fill="#FFDCC8" transform="rotate(20 112 108)"/>
+        <circle cx="118" cy="113" r="8" fill="#FFDCC8"/>
+        <!-- 손가락 힌트 -->
+        <circle cx="38" cy="116" r="3" fill="#FFB8A8"/>
+        <circle cx="44" cy="119" r="3" fill="#FFB8A8"/>
+        <circle cx="114" cy="119" r="3" fill="#FFB8A8"/>
+        <circle cx="120" cy="116" r="3" fill="#FFB8A8"/>
+        <!-- 왕관 -->
+        <path d="M62 50 L65 42 L72 48 L80 38 L88 48 L95 42 L98 50Z" fill="#FFD700" stroke="#FFA500" stroke-width="1"/>
+        <circle cx="80" cy="40" r="3" fill="#FF6B9D"/>
+        <circle cx="65" cy="43" r="2" fill="#7BC8F6"/>
+        <circle cx="95" cy="43" r="2" fill="#7BC8F6"/>
+        <!-- 반짝이 -->
+        <text x="20" y="40" font-size="14" opacity="0.7">✨</text>
+        <text x="125" y="50" font-size="12" opacity="0.6">⭐</text>
+        <text x="15" y="110" font-size="10" opacity="0.5">💫</text>
+        <text x="130" y="100" font-size="11" opacity="0.6">✨</text>
+      </svg>
+    </div>
+
+    <h1 class="hero-title">우리 <span>아기</span> 갤러리</h1>
+    <p class="hero-sub">소중한 순간들을 모아모아 🌸</p>
+    <div class="hero-stats">
+      <span>📸</span>
+      <span class="count" id="photo-count">0</span>
+      <span>장의 추억</span>
+    </div>
   </div>
 </section>
 
+<!-- ── Gallery ── -->
+<section class="gallery-section">
+  <div class="loading-wrap show" id="loading-wrap">
+    <div class="loading-hearts">🍼</div>
+    <div class="loading-text">사진 불러오는 중...</div>
+  </div>
+  <div class="gallery-grid" id="gallery"></div>
+  <div class="empty-state" id="empty-state">
+    <div class="empty-anim">📷</div>
+    <div class="empty-title">아직 사진이 없어요</div>
+    <div class="empty-sub">아래 + 버튼을 눌러<br>첫 번째 사진을 올려보세요 ☺️</div>
+  </div>
+</section>
+
+<!-- ── FAB ── -->
+<button class="fab" onclick="openModal()" aria-label="사진 추가">＋</button>
+
+<!-- ── Upload Modal ── -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">📷 사진 추가</div>
+    <div class="modal-title">📷 사진 추가하기</div>
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
       <input type="file" id="file-input" accept="image/*" multiple style="display:none">
-      <div class="upload-icon">🖼️</div>
-      <div class="upload-title">클릭하거나 파일을 여기에 드래그</div>
-      <div class="upload-desc">여러 장 동시 업로드 가능</div>
-      <span class="format-badge">JPG · PNG · WEBP · GIF</span>
+      <div class="upload-zone-icon">🖼️</div>
+      <div class="upload-zone-title">클릭하거나 여기에 드래그</div>
+      <div class="upload-zone-desc">여러 장 동시 업로드 · JPG PNG WEBP GIF</div>
     </div>
     <div class="progress-wrap" id="progress-wrap">
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
@@ -121,16 +419,25 @@
   </div>
 </div>
 
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="">
+<!-- ── Lightbox (삭제버튼 여기에만) ── -->
+<div class="lightbox" id="lightbox">
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+  <div class="lightbox-name" id="lightbox-name"></div>
+  <div class="lightbox-actions">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="lightbox-delete" id="lightbox-delete-btn">🗑 삭제</button>
+  </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 var CLOUD   = 'djmvsyi3g';
 var PRESET  = 'baby_gallery';
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby2h5oFWj3by-JAJbJ8S8slKET71MD_Baci_BRkXT1srfDITNCXfn35oo_L94gLoaic/exec';
+
+var currentLightboxItem = null;
+var currentLightboxCard = null;
 
 function showToast(msg, dur) {
   var t = document.getElementById('toast');
@@ -141,7 +448,7 @@ function showToast(msg, dur) {
 
 function updateUI() {
   var n = document.querySelectorAll('.photo-card').length;
-  document.getElementById('stat-pill').textContent = n + '장';
+  document.getElementById('photo-count').textContent = n;
   document.getElementById('empty-state').classList.toggle('show', n === 0);
 }
 
@@ -159,19 +466,14 @@ function handleBackdropClick(e) {
   if (e.target === document.getElementById('modal-backdrop')) closeModal();
 }
 
-// GET 방식으로 목록 불러오기
 async function loadPhotos() {
   document.getElementById('loading-wrap').classList.add('show');
   document.getElementById('gallery').innerHTML = '';
   try {
     var res  = await fetch(GAS_URL + '?action=list&_=' + Date.now());
     var list = await res.json();
-    if (Array.isArray(list)) {
-      list.forEach(function(item) { renderCard(item, false); });
-    }
-  } catch(e) {
-    console.error('로드 실패:', e);
-  }
+    if (Array.isArray(list)) list.forEach(function(item){ renderCard(item, false); });
+  } catch(e) { console.error(e); }
   document.getElementById('loading-wrap').classList.remove('show');
   updateUI();
 }
@@ -186,42 +488,20 @@ function renderCard(item, prepend) {
   img.alt = item.name || '';
   img.loading = 'lazy';
 
-  var overlay = document.createElement('div');
-  overlay.className = 'photo-overlay';
-  var delBtn = document.createElement('button');
-  delBtn.className = 'btn-delete';
-  delBtn.textContent = '🗑';
-  delBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    deletePhoto(item, card);
-  });
-  overlay.appendChild(delBtn);
-
-  var nameDiv = document.createElement('div');
-  nameDiv.className = 'photo-name';
-  nameDiv.textContent = item.name || '';
-
   card.appendChild(img);
-  card.appendChild(overlay);
-  card.appendChild(nameDiv);
-  card.addEventListener('click', function(e) {
-    if (e.target.closest('.btn-delete')) return;
-    openLightbox(item.url);
+  card.addEventListener('click', function() {
+    openLightbox(item, card);
   });
 
-  if (prepend && grid.firstChild) {
-    grid.insertBefore(card, grid.firstChild);
-  } else {
-    grid.appendChild(card);
-  }
+  if (prepend && grid.firstChild) grid.insertBefore(card, grid.firstChild);
+  else grid.appendChild(card);
 }
 
-// GET 방식으로 업로드
 async function handleFiles(fileList) {
   var files = Array.from(fileList).filter(function(f){ return f.type.startsWith('image/'); });
   if (!files.length) { showToast('이미지 파일만 업로드할 수 있어요'); return; }
 
-  var pw   = document.getElementById('progress-wrap');
+  var pw = document.getElementById('progress-wrap');
   var fill = document.getElementById('progress-fill');
   var lbl  = document.getElementById('progress-label');
   pw.style.display = 'block';
@@ -231,65 +511,62 @@ async function handleFiles(fileList) {
     var file = files[i];
     lbl.textContent = '업로드 중... (' + (i+1) + '/' + files.length + ')  ' + file.name;
     fill.style.width = ((i+1)/files.length*100) + '%';
-
     try {
-      // 1. Cloudinary 업로드
       var fd = new FormData();
       fd.append('file', file);
       fd.append('upload_preset', PRESET);
       fd.append('folder', 'baby-gallery');
-
       var cRes  = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', { method:'POST', body:fd });
       var cData = await cRes.json();
       if (cData.error) throw new Error(cData.error.message);
-
       var uploadedAt = new Date().toISOString();
-      var name = encodeURIComponent(file.name);
-      var url  = encodeURIComponent(cData.secure_url);
-
-      // 2. GET 방식으로 Sheets에 저장 (CORS 우회)
-      var gasRes = await fetch(GAS_URL + '?action=add&url=' + url + '&name=' + name + '&uploadedAt=' + uploadedAt);
-      var gasData = await gasRes.json();
-
+      await fetch(GAS_URL + '?action=add&url=' + encodeURIComponent(cData.secure_url) + '&name=' + encodeURIComponent(file.name) + '&uploadedAt=' + uploadedAt);
       var item = { url: cData.secure_url, name: file.name, uploadedAt: uploadedAt };
       renderCard(item, true);
       done++;
       updateUI();
     } catch(e) {
-      console.error('업로드 실패:', e);
-      showToast('업로드 실패: ' + file.name + ' (' + (e.message||'') + ')');
+      console.error(e);
+      showToast('업로드 실패: ' + file.name);
     }
   }
-
   setTimeout(closeModal, 500);
   if (done > 0) showToast(done + '장 업로드 완료 🎉', 3000);
 }
 
-// GET 방식으로 삭제
-async function deletePhoto(item, card) {
-  if (!confirm('이 사진을 삭제할까요?')) return;
-  try {
-    card.style.opacity = '0.4';
-    var url = encodeURIComponent(item.url);
-    await fetch(GAS_URL + '?action=delete&url=' + url);
-    card.remove();
-    updateUI();
-    showToast('사진이 삭제되었습니다');
-  } catch(e) {
-    card.style.opacity = '1';
-    showToast('삭제 중 오류가 발생했습니다');
-  }
-}
-
-function openLightbox(src) {
-  document.getElementById('lightbox-img').src = src;
+// ── Lightbox ── 삭제버튼은 여기서만!
+function openLightbox(item, card) {
+  currentLightboxItem = item;
+  currentLightboxCard = card;
+  document.getElementById('lightbox-img').src = item.url;
+  document.getElementById('lightbox-name').textContent = item.name || '';
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
+  currentLightboxItem = null;
+  currentLightboxCard = null;
 }
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+document.getElementById('lightbox-delete-btn').addEventListener('click', async function() {
+  if (!currentLightboxItem) return;
+  if (!confirm('이 사진을 삭제할까요?')) return;
+  try {
+    await fetch(GAS_URL + '?action=delete&url=' + encodeURIComponent(currentLightboxItem.url));
+    if (currentLightboxCard) currentLightboxCard.remove();
+    updateUI();
+    closeLightbox();
+    showToast('사진이 삭제되었습니다');
+  } catch(e) {
+    showToast('삭제 중 오류가 발생했습니다');
+  }
+});
+
 document.addEventListener('keydown', function(e) {
   if (e.key==='Escape') { closeLightbox(); closeModal(); }
 });
